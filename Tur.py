@@ -66,8 +66,8 @@ def start():
 
 
 def randomize_pos(turtl):
-    x = screen.canvas.winfo_width()
-    y = screen.canvas.winfo_height()
+    x = canvas.winfo_width()
+    y = canvas.winfo_height()
     turtl.pu()
     turtl.goto(randint(-658, x - 718), randint(391 - y, 330))
     turtl.pd()
@@ -80,21 +80,6 @@ def randomize_config():
     v_amount.randomize(3, 8)
     v_length.randomize(20, 60)
     ange.randomize(30, 90)
-
-
-class CanvasScreen(tur.TurtleScreen):
-    def __init__(self, master, width=1366, height=720):
-        self.canvas = tk.Canvas(master=master, width=width,
-                                height=height)
-        self.canvas.config(bg='#333333', relief='raised', bd=0,
-                           highlightbackground='#333333')
-        self.canvas.bind('<ButtonPress>', self.callback)
-        self.canvas.grid(sticky='nsew')
-        tur.TurtleScreen.__init__(self, self.canvas)
-        self.bgcolor('#333333')
-
-    def callback(self):
-        ...
 
 
 class ScaleWithEntry(tk.LabelFrame):
@@ -265,7 +250,12 @@ root.config(bg='#222222')
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
-screen = CanvasScreen
+canvas = tk.Canvas(root, width=1366, height=720)
+canvas.config(bg='#333333', relief='raised', bd=0,
+              highlightbackground='#333333')
+canvas.grid(sticky='nsew')
+screen = tur.TurtleScreen(canvas)
+screen.bgcolor('#333333')
 turtle = tur.RawTurtle(screen)
 turtle.speed(0)
 turtle.color('white')
