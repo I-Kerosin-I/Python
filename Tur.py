@@ -7,19 +7,19 @@ from random import randint, choice
 
 def v_shape(turtl, config: dict):
     turtl.right(config['angle'] / 2)
-    turtl.fd(config['v_length'])
-    turtl.bk(config['v_length'])
+    turtl.forward(config['v_length'])
+    turtl.back(config['v_length'])
     turtl.left(config['angle'])
-    turtl.fd(config['v_length'])
-    turtl.bk(config['v_length'])
+    turtl.forward(config['v_length'])
+    turtl.back(config['v_length'])
     turtl.right(config['angle'] / 2)
 
 
 def snowflake_arm(turtl, config: dict):
     for i in range(config['v_amount']):
-        turtl.fd(config['arm_length'] / config['v_amount'])
+        turtl.forward(config['arm_length'] / config['v_amount'])
         v_shape(turtl, config)
-    turtl.bk(config['arm_length'])
+    turtl.back(config['arm_length'])
     screen.update()
 
 
@@ -46,11 +46,12 @@ def start():
                                           'Use "#RRGGBB" syntax')
                 break
 
-        snow_config['arm_amount'] = arm_amount.get_main_var(3, 12)
-        snow_config['arm_length'] = arm_length.get_main_var(40, 100)
-        snow_config['v_amount'] = v_amount.get_main_var(3, 8)
-        snow_config['v_length'] = v_length.get_main_var(20, 60)
-        snow_config['angle'] = ange.get_main_var(30, 90)
+        turtle.pensize(pensize.get_main_var())
+        snow_config['arm_amount'] = arm_amount.get_main_var()
+        snow_config['arm_length'] = arm_length.get_main_var()
+        snow_config['v_amount'] = v_amount.get_main_var()
+        snow_config['v_length'] = v_length.get_main_var()
+        snow_config['angle'] = ange.get_main_var()
 
         snowflake(turtle, snow_config)
         randomize_pos(turtle)
@@ -68,25 +69,28 @@ def start():
 def randomize_pos(turtl):
     x = canvas.winfo_width()
     y = canvas.winfo_height()
-    turtl.pu()
+    turtl.up()
     turtl.goto(randint(-658, x - 718), randint(391 - y, 330))
-    turtl.pd()
+    turtl.down()
 
 
 def randomize_config():
     color.randomize()
-    arm_amount.randomize(3, 12)
-    arm_length.randomize(40, 100)
-    v_amount.randomize(3, 8)
-    v_length.randomize(20, 60)
-    ange.randomize(30, 90)
+    pensize.randomize()
+    arm_amount.randomize()
+    arm_length.randomize()
+    v_amount.randomize()
+    v_length.randomize()
+    ange.randomize()
 
 
 class ScaleWithEntry(tk.LabelFrame):
     def __init__(self, master, label_text, from_, to):
-        tk.LabelFrame.__init__(self, master, text=label_text, bg='#333333',
-                               fg='white', padx=7, pady=3)
+        super().__init__(master, text=label_text, bg='#333333',
+                         fg='white', padx=7, pady=3)
 
+        self.from_ = from_
+        self.to = to
         self.v_cmd = (self.register(self.on_validate), '%S', '%P')
         self.bool_var = tk.BooleanVar()
         self.main_var = tk.IntVar()
@@ -121,13 +125,13 @@ class ScaleWithEntry(tk.LabelFrame):
         self.bool_var.set(val)
         self.disabler()
 
-    def randomize(self, rand_min, rand_max):
-        self.main_var.set(randint(rand_min, rand_max))
+    def randomize(self):
+        self.main_var.set(randint(self.from_, self.to))
         self.scale.config(value=self.main_var.get())
 
-    def get_main_var(self, rand_min, rand_max):
+    def get_main_var(self):
         if self.bool_var.get():
-            self.randomize(rand_min, rand_max)
+            self.randomize()
             return self.main_var.get()
         else:
             return self.main_var.get()
@@ -141,7 +145,7 @@ class ScaleWithEntry(tk.LabelFrame):
 
 class StartWidget(ScaleWithEntry):
     def __init__(self, master, label_text, from_, to):
-        ScaleWithEntry.__init__(self, master, label_text, from_, to)
+        super().__init__(master, label_text, from_, to)
         self.check_btn = ttk.Checkbutton(self, text='TURBO', onvalue=True,
                                          variable=self.bool_var, offvalue=False,
                                          command=self.turbo, takefocus=False)
@@ -167,7 +171,7 @@ class StartWidget(ScaleWithEntry):
     def draw(self, **kwargs):
         self.start_btn.grid(column=0, row=0)
         self.stop_btn.grid(column=1, row=0)
-        ScaleWithEntry.draw(self)
+        super().draw()
 
     @staticmethod
     def stop():
@@ -178,8 +182,7 @@ class StartWidget(ScaleWithEntry):
 
 class ColorWidget(tk.LabelFrame):
     def __init__(self, master, color_list, text, bg='#333333', fg='white'):
-        tk.LabelFrame.__init__(self, master=master, text=text, bg=bg, fg=fg,
-                               padx=6, pady=5)
+        super().__init__(master=master, text=text, bg=bg, fg=fg, padx=6, pady=5)
         self.color = tk.StringVar(value='#FFFFFF')
         self.color_list = color_list
         self.is_rand = tk.BooleanVar()
@@ -208,9 +211,6 @@ class ColorWidget(tk.LabelFrame):
         self.disabler()
 
     def draw(self):
-        # noinspection PyTypeChecker
-        # self.columnconfigure((0, 1), weight=1)
-        # self.rowconfigure(0, weight=1)
         self.grid(sticky='nsew')
         self.entry.grid(column=0, row=0)
         self.random.grid(column=1, row=0, padx=5, sticky='e', columnspan=2, )
@@ -219,13 +219,13 @@ class ColorWidget(tk.LabelFrame):
 class AllRandomCheckBtn(ttk.Checkbutton):
     def __init__(self, master, text):
         self.bool_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton.__init__(self, master=master, text=text,
-                                 takefocus=False, command=self.toggler,
-                                 variable=self.bool_var)
+        super().__init__(master=master, text=text, variable=self.bool_var,
+                         takefocus=False, command=self.toggler)
 
     def toggler(self):
         if self.bool_var.get():
             color.toggle(True)
+            pensize.toggle(True)
             arm_amount.toggle(True)
             arm_length.toggle(True)
             v_amount.toggle(True)
@@ -233,6 +233,7 @@ class AllRandomCheckBtn(ttk.Checkbutton):
             ange.toggle(True)
         else:
             color.toggle(False)
+            pensize.toggle(False)
             arm_amount.toggle(False)
             arm_length.toggle(False)
             v_amount.toggle(False)
@@ -245,14 +246,13 @@ class AllRandomCheckBtn(ttk.Checkbutton):
 root = tk.Tk()
 root.title('Snow')
 root.geometry('1650x800+200+200')
-root.minsize(1000, 700)
+root.minsize(1000, 780)
 root.config(bg='#222222')
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
 canvas = tk.Canvas(root, width=1366, height=720)
-canvas.config(bg='#333333', relief='raised', bd=0,
-              highlightbackground='#333333')
+canvas.config(highlightbackground='#333333')
 canvas.grid(sticky='nsew')
 screen = tur.TurtleScreen(canvas)
 screen.bgcolor('#333333')
@@ -302,6 +302,7 @@ all_random = AllRandomCheckBtn(random_frame, text='All rand')
 
 color = ColorWidget(snowflake_config_frame, colors, text='Color')
 
+pensize = ScaleWithEntry(snowflake_config_frame, 'Pen size', 1, 3)
 arm_amount = ScaleWithEntry(snowflake_config_frame, 'Arm amount', 3, 12)
 arm_length = ScaleWithEntry(snowflake_config_frame, 'Arm length', 40, 100)
 v_amount = ScaleWithEntry(snowflake_config_frame, '"V" amount', 3, 8)
@@ -326,6 +327,7 @@ randomizer.grid(sticky='w')
 all_random.grid(row=0, column=1, sticky='e')
 color.draw()
 
+pensize.draw()
 arm_amount.draw()
 arm_length.draw()
 v_amount.draw()
