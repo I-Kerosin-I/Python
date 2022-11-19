@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as mb
 import turtle as tur
-from random import randint, choice
+from random import random, randint, uniform
+from colorsys import hsv_to_rgb
 
 
 def v_shape(turtl, config: dict):
@@ -34,8 +35,7 @@ def start():
     starter.start_btn.config(state='disabled')
     canvas_clear_btn.config(state='disabled')
     starter.stop_btn.config(state='normal')
-    amount = starter.main_var.get()
-    for i in range(amount):
+    for i in range(starter.main_var.get()):
         if color.is_rand.get():
             turtle.color(color.get_color())
         else:
@@ -137,7 +137,7 @@ class ScaleWithEntry(tk.LabelFrame):
             return self.main_var.get()
 
     def draw(self, **kwargs):
-        self.grid(kwargs, columnspan=2)  # sticky='nsew',
+        self.grid(kwargs, columnspan=2, sticky='nsew')
         self.entry.grid(column=0, row=0, padx=7)
         self.scale.grid(column=1, row=0)
         self.check_btn.grid(columnspan=2, sticky='e')
@@ -169,8 +169,8 @@ class StartWidget(ScaleWithEntry):
             screen.tracer(1, 1)
 
     def draw(self, **kwargs):
-        self.start_btn.grid(column=0, row=0)
-        self.stop_btn.grid(column=1, row=0)
+        self.start_btn.grid(column=0, row=0, sticky='w')
+        self.stop_btn.grid(column=1, row=0, sticky='e')
         super().draw()
 
     @staticmethod
@@ -181,10 +181,9 @@ class StartWidget(ScaleWithEntry):
 
 
 class ColorWidget(tk.LabelFrame):
-    def __init__(self, master, color_list, text, bg='#333333', fg='white'):
+    def __init__(self, master, text, bg='#333333', fg='white'):
         super().__init__(master=master, text=text, bg=bg, fg=fg, padx=6, pady=5)
         self.color = tk.StringVar(value='#FFFFFF')
-        self.color_list = color_list
         self.is_rand = tk.BooleanVar()
         self.entry = ttk.Entry(self, width=8, textvariable=self.color)
 
@@ -199,7 +198,10 @@ class ColorWidget(tk.LabelFrame):
             self.entry.config(state='normal')
 
     def randomize(self):
-        self.color.set(choice(self.color_list))
+        self.color.set('#'+''.join(
+            [f'{round(i*255):X}'.zfill(2) for i in hsv_to_rgb(random(),
+             uniform(*color_config['saturation']),
+             uniform(*color_config['brightness']))]))
 
     def get_color(self):
         if self.is_rand.get():
@@ -271,10 +273,10 @@ style.configure('TEntry', background='#333333', foreground='black')
 style.configure('TLabelframe', background='#333333', foreground='#666666')
 style.configure('TButton', foreground='black')
 
-snow_config = {'color': 'white', 'arm_amount': 6, 'arm_length': 70,
-               'v_amount': 6, 'v_length': 40, 'angle': 60}
-colors = ('#5CDB95', '#EDF5E1', '#240090', '#C3073F', '#950740', '#AFD275',
-          '#66FCF1')
+snow_config = {'arm_amount': 6, 'arm_length': 70, 'v_amount': 6,
+               'v_length': 40, 'angle': 60}
+color_config = {'saturation': (0.5, 1),     # Use values between 0 and 1
+                'brightness': (0.7, 1)}
 
 # ------------------- Settings frame widgets -------------------
 
@@ -300,7 +302,7 @@ randomizer = tk.Button(random_frame, bg='#222222', text='Randomize',
                        activeforeground='white', command=randomize_config)
 all_random = AllRandomCheckBtn(random_frame, text='All rand')
 
-color = ColorWidget(snowflake_config_frame, colors, text='Color')
+color = ColorWidget(snowflake_config_frame, text='Color')
 
 pensize = ScaleWithEntry(snowflake_config_frame, 'Pen size', 1, 3)
 arm_amount = ScaleWithEntry(snowflake_config_frame, 'Arm amount', 3, 12)
@@ -316,10 +318,10 @@ config_menu.columnconfigure(0, weight=1)
 config_menu.rowconfigure((0, 1, 2), weight=1)
 config_menu.grid(sticky='nsew', row=0, column=1)
 
-start_frame.grid(sticky='new')
+start_frame.grid(sticky='n')
 starter.draw()
 
-canvas_clear_btn.grid()
+canvas_clear_btn.grid(sticky='n')
 
 snowflake_config_frame.grid()
 random_frame.grid(sticky='ew')
