@@ -67,10 +67,9 @@ def start():
 
 
 def randomize_pos(turtl):
-    x = canvas.winfo_width()
-    y = canvas.winfo_height()
     turtl.up()
-    turtl.goto(randint(-658, x - 718), randint(391 - y, 330))
+    turtl.goto(randint(30, canvas.winfo_width()-30),
+               randint(30-canvas.winfo_height(), -30))
     turtl.down()
 
 
@@ -84,7 +83,7 @@ def randomize_config():
     ange.randomize()
 
 
-class ScaleWithEntry(tk.LabelFrame):
+class CfgWidget(tk.LabelFrame):
     def __init__(self, master, label_text, from_, to):
         super().__init__(master, text=label_text, bg='#333333',
                          fg='white', padx=7, pady=3)
@@ -143,24 +142,22 @@ class ScaleWithEntry(tk.LabelFrame):
         self.check_btn.grid(columnspan=2, sticky='e')
 
 
-class StartWidget(ScaleWithEntry):
+class StartWidget(CfgWidget):
     def __init__(self, master, label_text, from_, to):
         super().__init__(master, label_text, from_, to)
         self.check_btn = ttk.Checkbutton(self, text='TURBO', onvalue=True,
                                          variable=self.bool_var, offvalue=False,
                                          command=self.turbo, takefocus=False)
+
         self.start_btn = tk.Button(master, bg='#222222', text='START',
-                                   width=6,
-                                   activebackground='#333333',
-                                   font=('arial', 10, 'bold'),
-                                   activeforeground='white', command=start,
-                                   fg='white')
-        self.stop_btn = tk.Button(master, bg='#222222', text='STOP',
-                                  fg='white',
-                                  activebackground='#333333',
-                                  activeforeground='white',
-                                  font=('arial', 10, 'bold'), state='disabled',
-                                  command=self.stop)
+                                   width=6, activebackground='#333333',
+                                   font=('arial', 10, 'bold'), fg='white',
+                                   activeforeground='white', command=start,)
+
+        self.stop_btn = tk.Button(master, bg='#222222', text='STOP', fg='white',
+                                  activebackground='#333333', state='disabled',
+                                  activeforeground='white', command=self.stop,
+                                  font=('arial', 10, 'bold'), width=6)
 
     def turbo(self):
         if self.bool_var.get():
@@ -198,10 +195,10 @@ class ColorWidget(tk.LabelFrame):
             self.entry.config(state='normal')
 
     def randomize(self):
-        self.color.set('#'+''.join(
-            [f'{round(i*255):X}'.zfill(2) for i in hsv_to_rgb(random(),
-             uniform(*color_config['saturation']),
-             uniform(*color_config['brightness']))]))
+        self.color.set("#%02X%02X%02X" % tuple(round(i*255) for i in hsv_to_rgb(
+            random(),
+            uniform(*color_config['saturation']),
+            uniform(*color_config['brightness']))))
 
     def get_color(self):
         if self.is_rand.get():
@@ -248,19 +245,22 @@ class AllRandomCheckBtn(ttk.Checkbutton):
 root = tk.Tk()
 root.title('Snow')
 root.geometry('1650x800+200+200')
-root.minsize(1000, 780)
+root.minsize(1000, 795)
 root.config(bg='#222222')
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
-canvas = tk.Canvas(root, width=1366, height=720)
-canvas.config(highlightbackground='#333333')
-canvas.grid(sticky='nsew')
+canvas = tk.Canvas(root, width=0, height=0, highlightbackground='#333333')
+canvas.grid(sticky='nsew', row=0, column=0)
 screen = tur.TurtleScreen(canvas)
 screen.bgcolor('#333333')
+
 turtle = tur.RawTurtle(screen)
 turtle.speed(0)
 turtle.color('white')
+turtle.up()
+turtle.goto(root.winfo_width()/2, -root.winfo_height()/2)
+turtle.down()
 
 # Vars
 auto_randomize_bool = tk.BooleanVar(value=True)
@@ -277,53 +277,52 @@ snow_config = {'arm_amount': 6, 'arm_length': 70, 'v_amount': 6,
                'v_length': 40, 'angle': 60}
 color_config = {'saturation': (0.5, 1),     # Use values between 0 and 1
                 'brightness': (0.7, 1)}
+random_config = {'pensize': (1, 3), 'arm_amount': (3, 12),
+                 'arm_length': (40, 100), 'v_amount': (3, 8),
+                 'v_length': (20, 60), 'ange': (30, 90)}
 
 # ------------------- Settings frame widgets -------------------
 
-config_menu = tk.Frame(root, bg='#333333', bd=3, relief='raised', width=300,
-                       padx=5, pady=5)
+control_menu = tk.Frame(root, bg='#333333', bd=3, relief='raised', width=300,
+                        padx=5, pady=5)
 
-start_frame = tk.Frame(config_menu, bg='#333333', bd=3, relief='raised',
+start_frame = tk.Frame(control_menu, bg='#333333', bd=3, relief='raised',
                        padx=3, pady=3)
 
 starter = StartWidget(start_frame, 'Snow flake amount', 1, 10)
 
-canvas_clear_btn = tk.Button(config_menu, bg='#222222', text='Clear',
+canvas_clear_btn = tk.Button(control_menu, bg='#222222', text='Clear',
                              fg='white', activebackground='#333333',
                              activeforeground='white', width=10,
                              command=lambda: turtle.clear())
-
-snowflake_config_frame = tk.Frame(config_menu, bg='#333333', relief='raised',
-                                  bd=3, padx=3, pady=3)
-random_frame = tk.Frame(snowflake_config_frame, bg='#333333', bd=3)
+config_frame = tk.Frame(control_menu, bg='#333333', relief='raised',
+                        bd=3, padx=3, pady=3)
+random_frame = tk.Frame(config_frame, bg='#333333', bd=3)
 
 randomizer = tk.Button(random_frame, bg='#222222', text='Randomize',
                        fg='white', activebackground='#333333',
                        activeforeground='white', command=randomize_config)
 all_random = AllRandomCheckBtn(random_frame, text='All rand')
 
-color = ColorWidget(snowflake_config_frame, text='Color')
+color = ColorWidget(config_frame, text='Color')
 
-pensize = ScaleWithEntry(snowflake_config_frame, 'Pen size', 1, 3)
-arm_amount = ScaleWithEntry(snowflake_config_frame, 'Arm amount', 3, 12)
-arm_length = ScaleWithEntry(snowflake_config_frame, 'Arm length', 40, 100)
-v_amount = ScaleWithEntry(snowflake_config_frame, '"V" amount', 3, 8)
-v_length = ScaleWithEntry(snowflake_config_frame, '"V" length', 20, 60)
-ange = ScaleWithEntry(snowflake_config_frame, '"V" angle', 30, 90)
+pensize = CfgWidget(config_frame, 'Pen size', *random_config['pensize'])
+arm_amount = CfgWidget(config_frame, 'Arm amount', *random_config['arm_amount'])
+arm_length = CfgWidget(config_frame, 'Arm length', *random_config['arm_length'])
+v_amount = CfgWidget(config_frame, '"V" amount', *random_config['v_amount'])
+v_length = CfgWidget(config_frame, '"V" length', *random_config['v_length'])
+ange = CfgWidget(config_frame, '"V" angle', *random_config['ange'])
 
 # ---------------------------- Grid ----------------------------
 
-config_menu.columnconfigure(0, weight=1)
-# noinspection PyTypeChecker
-config_menu.rowconfigure((0, 1, 2), weight=1)
-config_menu.grid(sticky='nsew', row=0, column=1)
+control_menu.grid(sticky='ne', row=0, column=0)
 
-start_frame.grid(sticky='n')
+start_frame.pack()
 starter.draw()
 
-canvas_clear_btn.grid(sticky='n')
+canvas_clear_btn.pack(pady=5)
 
-snowflake_config_frame.grid()
+config_frame.pack()
 random_frame.grid(sticky='ew')
 randomizer.grid(sticky='w')
 all_random.grid(row=0, column=1, sticky='e')
@@ -335,5 +334,6 @@ arm_length.draw()
 v_amount.draw()
 v_length.draw()
 ange.draw()
+
 
 root.mainloop()
