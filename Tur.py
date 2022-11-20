@@ -135,8 +135,8 @@ class CfgWidget(tk.LabelFrame):
         else:
             return self.main_var.get()
 
-    def draw(self, **kwargs):
-        self.grid(kwargs, columnspan=2, sticky='nsew')
+    def draw(self):
+        self.grid(columnspan=2, sticky='nsew')
         self.entry.grid(column=0, row=0, padx=7)
         self.scale.grid(column=1, row=0)
         self.check_btn.grid(columnspan=2, sticky='e')
@@ -165,7 +165,7 @@ class StartWidget(CfgWidget):
         else:
             screen.tracer(1, 1)
 
-    def draw(self, **kwargs):
+    def draw(self):
         self.start_btn.grid(column=0, row=0, sticky='w')
         self.stop_btn.grid(column=1, row=0, sticky='e')
         super().draw()
