@@ -7,9 +7,11 @@ def solver(d1, d2, d3, d4):
             f'{br[0]} {n[0]} {i[0]} {br[1]} {n[1]} {br[2]} {i[1]} {br[3]} {n[2]} {br[4]} {i[2]} {n[3]} {br[5]}' \
             for i in product('+-*/', repeat=3) for br in
             ('      ', '( )   ', '(   ) ', ' (  ) ', ' (   )', '   ( )')]
-        try:
-            print([i.replace(' ', '') for i in res if eval(i) == 10])
-        except ZeroDivisionError:
-            print('ZeroDivision')
+        
+        for i in res:
+            try:
+                print(i.replace(' ', '')) if eval(i) == 10 else None
+            except ZeroDivisionError:
+                None
 
-solver(4,1,2,8)
+solver(9,2,3,3)
