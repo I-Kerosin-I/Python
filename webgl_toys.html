@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Webgl toys</title>
+</head>
+<link rel="stylesheet" href="style.css"/>
+
+<script id="VSHADER" type="x-shader/x-vertex">
+  attribute vec3 a_Color;
+  attribute vec3 a_Position;
+  varying vec3 v_Color;
+  void main() {
+    v_Color = a_Color;
+    gl_Position = vec4(a_Position, 1.0);
+  }
+</script>
+
+<script id="FSHADER" type="x-shader/x-fragment">
+  precision mediump float;
+  varying vec3 v_Color;
+    void main() {
+    gl_FragColor = vec4(v_Color, 1.0);
+    }
+</script>
+
+<body onload="webGL_start();">
+<canvas id="gl_canvas">your browser doesn't support HTML5 canvas</canvas>
+<script src="webgl_toys.js"></script>
+</body>
+</html>
